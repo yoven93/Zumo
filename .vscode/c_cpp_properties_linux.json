@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "defines": [
+                "ARDUINO=10800"
+            ],
+            "includePath": [
+                "${workspaceFolder}",
+                "${HOME}/.arduino15/packages/pololu-a-star/hardware/avr/4.0.2/**",
+                "${HOME}/Arduino/libraries/ZumoShield/**",
+                "${HOME}/Arduino/libraries/Zumo32U4/**",
+                "${HOME}/Arduino/Battle/custom_libraries/**",
+                "/usr/share/arduino-1.8.8/hardware/tools/**",
+                "/usr/share/arduino-1.8.8/hardware/arduino/**",
+                "/usr/share/arduino-1.8.8/libraries/**"
+            ],
+            "forcedInclude": [],
+            "intelliSenseMode": "msvc-x64",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "compilerPath": "/usr/bin/gcc"
+        }
+    ],
+    "version": 4
+}

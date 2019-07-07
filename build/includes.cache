@@ -1,0 +1,87 @@
+[
+  {
+    "Sourcefile": "",
+    "Include": "",
+    "Includepath": "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino"
+  },
+  {
+    "Sourcefile": "",
+    "Include": "",
+    "Includepath": "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\leonardo"
+  },
+  {
+    "Sourcefile": "c:\\Users\\krisnasamy.ayassamy\\Desktop\\zumo\\zumo32u4battle\\build\\sketch\\Battle.ino.cpp",
+    "Include": "Wire.h",
+    "Includepath": "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries\\Wire\\src"
+  },
+  {
+    "Sourcefile": "c:\\Users\\krisnasamy.ayassamy\\Desktop\\zumo\\zumo32u4battle\\build\\sketch\\Battle.ino.cpp",
+    "Include": "Zumo32U4.h",
+    "Includepath": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4"
+  },
+  {
+    "Sourcefile": "c:\\Users\\krisnasamy.ayassamy\\Desktop\\zumo\\zumo32u4battle\\build\\sketch\\Battle.ino.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries\\Wire\\src\\Wire.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries\\Wire\\src\\utility\\twi.c",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4\\L3G.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4\\LSM303.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4\\PololuBuzzer.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4\\PololuHD44780.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4\\Pushbutton.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4\\QTRSensors.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4\\Zumo32U4Encoders.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4\\Zumo32U4IRPulses.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4\\Zumo32U4Motors.cpp",
+    "Include": "",
+    "Includepath": ""
+  },
+  {
+    "Sourcefile": "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4\\Zumo32U4ProximitySensors.cpp",
+    "Include": "",
+    "Includepath": ""
+  }
+]

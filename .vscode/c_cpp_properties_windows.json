@@ -1,0 +1,39 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "browse": {
+                "path": [                    
+                    "C:\\Users\\${env:Username}\\AppData\\Local\\Arduino15\\packages\\pololu-a-star\\hardware\\avr\\4.0.2\\**",
+                    "\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\**",
+                    "\\Arduino\\hardware\\arduino\\avr\\libraries\\**",
+                    "\\Arduino\\hardware\\tools\\avr\\avr\\include\\**",
+                    "\\Arduino\\hardware\\arduino\\avr\\variants\\standard\\**",
+                    "C:\\Users\\${env:Username}\\Documents\\Arduino\\libraries\\**",
+                    "${workspaceFolder}"
+                ],
+                "limitSymbolsToIncludedHeaders": false
+            },
+            "defines": [
+                "ARDUINO=10800",
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "includePath": [                
+                "C:\\Users\\${env:Username}\\AppData\\Local\\Arduino15\\packages\\pololu-a-star\\hardware\\avr\\4.0.2\\**",
+                "\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\**",
+                "\\Arduino\\hardware\\arduino\\avr\\libraries\\**",
+                "\\Arduino\\hardware\\tools\\avr\\avr\\include\\**",
+                "\\Arduino\\hardware\\arduino\\avr\\variants\\standard\\**",
+                "C:\\Users\\${env:Username}\\Documents\\Arduino\\libraries\\**",
+                "${workspaceFolder}"
+            ],
+            "forcedInclude": [],
+            "intelliSenseMode": "msvc-x64",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
