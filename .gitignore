@@ -1,0 +1,5 @@
+# Ignore file
+.vscode\c_cpp_properties.json
+
+# Ignore build
+build/*
