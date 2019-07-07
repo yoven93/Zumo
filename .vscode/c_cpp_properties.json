@@ -3,13 +3,13 @@
         {
             "name": "Win32",
             "includePath": [
-                "C:\\Users\\krisnasamy.ayassamy\\AppData\\Local\\Arduino15\\packages\\pololu-a-star\\hardware\\avr\\4.0.2\\**",
+                "C:\\Users\\kavi.ramsamy\\AppData\\Local\\Arduino15\\packages\\pololu-a-star\\hardware\\avr\\4.0.2\\**",
                 "${workspaceRoot}",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\avr\\include",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\lib\\gcc\\avr\\5.4.0\\include",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\mega",
-                "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4",
+                "C:\\Users\\kavi.ramsamy\\Documents\\Arduino\\libraries\\Zumo32U4",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries\\Wire\\src",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\avr\\include"
             ],
@@ -21,7 +21,7 @@
                     "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\avr\\include",
                     "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\lib\\gcc\\avr\\5.4.0\\include",
                     "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\mega",
-                    "C:\\Users\\krisnasamy.ayassamy\\Documents\\Arduino\\libraries\\Zumo32U4",
+                    "C:\\Users\\kavi.ramsamy\\Documents\\Arduino\\libraries\\Zumo32U4",
                     "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries\\Wire\\src",
                     "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\avr\\include"
                 ]
