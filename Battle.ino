@@ -78,11 +78,16 @@ const uint16_t waitTime = 5000;
 // stalemate, so it increases its motor speed.
 const uint16_t stalemateTime = 4000;
 
+bool firstPressed = false;
+bool scanRight = true;
+int previous = 0;
+
 // This enum lists the top-level states that the robot can be in.
 enum State
 {
   StatePausing,
   StateWaiting,
+  StateInitialScanning,
   StateScanning,
   StateDriving,
   StateBacking,
@@ -130,7 +135,33 @@ void loop()
 {
   bool buttonPress = buttonA.getSingleDebouncedPress();
 
-  if (state == StatePausing)
+  if(state == StateInitialScanning){
+    if(scanRight){
+      motors.setSpeeds(200,-200);
+    }else{
+      motors.setSpeeds(-200,200);
+    }
+
+    if(firstPressed){
+      if(millis() - previous > 350){
+        scanRight = !scanRight;
+        previous = millis();
+        firstPressed = false;
+      }
+    }else{
+      if(millis() - previous > 700){
+        scanRight = !scanRight;
+        previous = millis();
+      }
+    }
+
+     proxSensors.read();
+      if (proxSensors.countsFrontWithLeftLeds() >= 1 || proxSensors.countsFrontWithRightLeds() >= 1) {
+        changeState(StateDriving);
+      }
+
+  }
+  else if (state == StatePausing)
   {
     // In this state, we just wait for the user to press button
     // A, while displaying the battery voltage every 100 ms.
@@ -152,8 +183,11 @@ void loop()
 
     if (buttonPress)
     {
+      delay(5000);
+      firstPressed = true;
+      previous = millis();
       // The user pressed button A, so go to the waiting state.
-      changeState(StateWaiting);
+      changeState(StateInitialScanning);
     }
   }
   else if (buttonPress)
