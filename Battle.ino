@@ -41,24 +41,24 @@ const uint16_t lineSensorThreshold = 1000;
 const uint16_t scanTimeMin = 100;
 
 // The maximum amount of time to spend scanning for nearby opponents, in milliseconds.
-const uint16_t scanTimeMax = 300;
+const uint16_t scanTimeMax = 400;
 
 /**********************************************************************
  *                     Motors Sensor Variables                              
  **********************************************************************/
 
 // Speed that the robot uses when backing up.
-const uint16_t reverseSpeed = 300;
+const uint16_t reverseSpeed = 200;
 
 // The amount of time to spend backing up after detecting a border, in milliseconds.
-const uint16_t reverseTime = 150;
+const uint16_t reverseTime = 200;
 
 // Speed that the robot uses when turning.
-const uint16_t turnSpeed = 300;
+const uint16_t turnSpeed = 200;
 
 // Speed the robot uses to move forward at a low speed
 // to look for opponents.
-const uint16_t forwardSpeed = 350;
+const uint16_t forwardSpeed = 200;
 
 // Speed the robot uses to push opponent out of the ring.
 const uint16_t rammingSpeed = 400;
@@ -92,6 +92,8 @@ uint16_t stateStartTime;
 bool justStarted = true;
 int previous = 0;
 
+bool opponentFound = false;
+
 /**********************************************************************
  *                              Set Up                             
  **********************************************************************/
@@ -113,8 +115,9 @@ void setup()
   lcd.gotoXY(0, 0);
   lcd.print("Press A");
   buttonA.waitForPress();
-  delay(5000);
   lcd.clear();
+  lcd.print("Started");
+  delay(5000);
   previous = millis();
 }
 
@@ -125,7 +128,6 @@ void loop()
 {
   if (state == StateDriving)
   {
-
     // This block is executed only once when the robot is just started.
     if (justStarted)
     {
@@ -137,51 +139,36 @@ void loop()
       }
     }
 
-    // Check for borders with the line sensors.
-    lineSensors.read(lineSensorValues);
-
-    if (lineSensorValues[0] < lineSensorThreshold)
-    {
-      scanDir = DirectionRight;
-      changeState(StateBacking);
-    }
-
-    if (lineSensorValues[2] < lineSensorThreshold)
-    {
-      scanDir = DirectionLeft;
-      changeState(StateBacking);
-    }
+    checkBorder();
 
     proxSensors.read();
+    
+    if (proxSensors.countsFrontWithLeftLeds() >= 4 && proxSensors.countsFrontWithRightLeds() >= 4) {
+      opponentFound = true;
+    }
 
-    if (proxSensors.countsFrontWithRightLeds() == 0 && proxSensors.countsFrontWithLeftLeds() == 0)
-    {
-      // Robot has not detected anything in front, so continue moving forward and scan with the right and left sensors.
-      motors.setSpeeds(forwardSpeed, forwardSpeed);
+    if (opponentFound) {
 
-      // Scan with the right and left sensors
-      proxSensors.read();
-      if (proxSensors.countsRightWithRightLeds() >= 2)
-      {
-        scanDir = DirectionRight;
-        changeState(StateScanning);
+      ledRed(1);
+
+      if (proxSensors.countsFrontWithLeftLeds() > proxSensors.countsFrontWithRightLeds()) {
+        motors.setSpeeds(380, 400);
+      } else if (proxSensors.countsFrontWithLeftLeds() < proxSensors.countsFrontWithRightLeds()) {
+        motors.setSpeeds(400, 380);
+      } else {
+        motors.setSpeeds(rammingSpeed, rammingSpeed);
       }
 
-      if (proxSensors.countsLeftWithLeftLeds() >= 2)
-      {
-        scanDir = DirectionLeft;
-        changeState(StateScanning);
-      }
-    } 
-    else 
-    {
-      if (proxSensors.countsFrontWithLeftLeds() >= 4 || proxSensors.countsFrontWithRightLeds() >= 4)
-      {
+    } else {
 
-      }
-      else
-      {
+      ledRed(0);
 
+      if (proxSensors.countsFrontWithLeftLeds() > proxSensors.countsFrontWithRightLeds()) {
+        motors.setSpeeds(250, 300);
+      } else if (proxSensors.countsFrontWithLeftLeds() < proxSensors.countsFrontWithRightLeds()) {
+        motors.setSpeeds(300, 250);
+      } else {
+        motors.setSpeeds(300, 300);
       }
     }
   }
@@ -212,13 +199,10 @@ void loop()
 
     if (time > scanTimeMax)
     {
-      // We have not seen anything for a while, so start driving.
       changeState(StateDriving);
     }
     else if (time > scanTimeMin)
     {
-      // Read the proximity sensors.  If we detect anything with
-      // the front sensor, then start driving forwards.
       proxSensors.read();
       if (proxSensors.countsFrontWithLeftLeds() >= 2 || proxSensors.countsFrontWithRightLeds() >= 2)
       {
@@ -243,4 +227,24 @@ void changeState(uint8_t newState)
 {
   state = (State)newState;
   stateStartTime = millis();
+}
+
+
+void checkBorder() {
+   // Check for borders with the line sensors.
+    lineSensors.read(lineSensorValues);
+
+    if (lineSensorValues[0] < lineSensorThreshold)
+    {
+      scanDir = DirectionRight;
+      opponentFound = false;
+      changeState(StateBacking);
+    }
+
+    if (lineSensorValues[2] < lineSensorThreshold)
+    {
+      scanDir = DirectionLeft;
+      opponentFound = false;
+      changeState(StateBacking);
+    }
 }
