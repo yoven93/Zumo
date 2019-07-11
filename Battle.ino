@@ -178,14 +178,14 @@ void loop()
       if (justStarted) {
 
           if (millis() - scanningPrevTime > 350) {
-              scanningPrevTime = millis();
-              justChangedState = false;
+              justStarted = false;
               toTurnRight = !toTurnRight;
+              scanningPrevTime = millis();
           }
       } else {
           if (millis() - scanningPrevTime > 700) {
-              scanningPrevTime = millis();
               toTurnRight = !toTurnRight;
+              scanningPrevTime = millis();
           }
       }
 
