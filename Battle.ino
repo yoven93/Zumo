@@ -41,7 +41,7 @@ const uint16_t lineSensorThreshold = 1000;
 const uint16_t scanTimeMin = 200;
 
 // The maximum amount of time to spend scanning for nearby opponents, in milliseconds.
-const uint16_t scanTimeMax = 2100;
+const uint16_t scanTimeMax = 600;
 
 
 /**********************************************************************
@@ -57,6 +57,8 @@ const uint16_t turnSpeed = 200;
 // Speed the robot uses to move forward at a low speed
 // to look for opponents.
 const uint16_t forwardSpeed = 200;
+
+const uint16_t attackSpeed = 400;
 
 // These two variables specify the speeds to apply to the motors
 // when veering left or veering right.  While the robot is
@@ -157,7 +159,7 @@ void setup()
   lcd.gotoXY(0, 0);
   lcd.print("Press A");
   buttonA.waitForPress();
-  delay(5000);
+  delay(waitTime);
   lcd.clear();
   scanningPrevTime = millis();
 }
@@ -177,13 +179,13 @@ void loop()
 
       if (justStarted) {
 
-          if (millis() - scanningPrevTime > 350) {
+          if (millis() - scanningPrevTime > 250) {
               justStarted = false;
               toTurnRight = !toTurnRight;
               scanningPrevTime = millis();
           }
       } else {
-          if (millis() - scanningPrevTime > 700) {
+          if (millis() - scanningPrevTime > 500) {
               toTurnRight = !toTurnRight;
               scanningPrevTime = millis();
           }
@@ -192,7 +194,7 @@ void loop()
       // Read the proximity sensors and if anything is detected
       // by the front proximity receiver, move forward.
       proxSensors.read();
-      if (proxSensors.countsFrontWithLeftLeds() > 0 || proxSensors.countsFrontWithRightLeds() > 0) {
+      if (proxSensors.countsFrontWithLeftLeds() > 2 || proxSensors.countsFrontWithRightLeds() > 2) {
         changeState(StateDriving);
       }
 
@@ -231,7 +233,7 @@ void loop()
       // Read the proximity sensors.  If we detect anything with
       // the front sensor, then start driving forwards.
       proxSensors.read();
-      if (proxSensors.countsFrontWithLeftLeds() > 0 || proxSensors.countsFrontWithRightLeds() > 0) {
+      if (proxSensors.countsFrontWithLeftLeds() >= 2 || proxSensors.countsFrontWithRightLeds() >= 2) {
         changeState(StateDriving);
       }
     }
@@ -266,8 +268,7 @@ void loop()
     uint8_t sum = proxSensors.countsFrontWithRightLeds() + proxSensors.countsFrontWithLeftLeds();
     int8_t diff = proxSensors.countsFrontWithRightLeds() - proxSensors.countsFrontWithLeftLeds();
 
-    if (sum >= 4 || timeInThisState() > stalemateTime)
-    {
+    if (sum >= 4 || timeInThisState() > stalemateTime){
       // The front sensor is getting a strong signal, or we have
       // been driving forward for a while now without seeing the
       // border.  Either way, there is probably a robot in front
@@ -278,8 +279,7 @@ void loop()
       // Turn on the red LED when ramming.
       ledRed(1);
     }
-    else if (sum == 0)
-    {
+    else if (sum > 2){
       // We don't see anything with the front sensor, so just
       // keep driving forward.  Also monitor the side sensors; if
       // they see an object then we want to go to the scanning
@@ -287,39 +287,33 @@ void loop()
 
       motors.setSpeeds(forwardSpeed, forwardSpeed);
 
-      if (proxSensors.countsLeftWithLeftLeds() >= 2)
-      {
+      if (proxSensors.countsLeftWithLeftLeds() >= 2){
         // Detected something to the left.
         scanDir = DirectionLeft;
         changeState(StateScanning);
       }
 
-      if (proxSensors.countsRightWithRightLeds() >= 2)
-      {
+      if (proxSensors.countsRightWithRightLeds() >= 2){
         // Detected something to the right.
         scanDir = DirectionRight;
         changeState(StateScanning);
       }
     }
-    else
-    {
+    else{
       // We see something with the front sensor but it is not a
       // strong reading.
 
-      if (diff >= 1)
-      {
+      if (diff >= 1){
         // The right-side reading is stronger, so veer to the right.
         motors.setSpeeds(veerSpeedHigh, veerSpeedLow);
       }
-      else if (diff <= -1)
-      {
+      else if (diff <= -1){
         // The left-side reading is stronger, so veer to the left.
         motors.setSpeeds(veerSpeedLow, veerSpeedHigh);
       }
-      else
-      {
+      else{
         // Both readings are equal, so just drive forward.
-        motors.setSpeeds(forwardSpeed, forwardSpeed);
+        motors.setSpeeds(attackSpeed, attackSpeed);
       }
 
     }
@@ -329,16 +323,14 @@ void loop()
 // Gets the amount of time we have been in this state, in
 // milliseconds.  After 65535 milliseconds (65 seconds), this
 // overflows to 0.
-uint16_t timeInThisState()
-{
+uint16_t timeInThisState(){
   return (uint16_t)(millis() - stateStartTime);
 }
 
 // Changes to a new state.  It also clears the LCD and turns off
 // the LEDs so that the things the previous state were doing do
 // not affect the feedback the user sees in the new state.
-void changeState(uint8_t newState)
-{
+void changeState(uint8_t newState){
   state = (State)newState;
   justChangedState = true;
   stateStartTime = millis();
