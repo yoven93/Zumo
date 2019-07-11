@@ -1,21 +1,19 @@
-/* This example shows how you might use the Zumo 32U4 in a robot
-sumo competition.
-
-It uses the line sensors to detect the white border of the sumo
-ring so it can avoid driving out of the ring (similar to the
-BorderDetect example).  It also uses the Zumo 32U4's proximity
-sensors to scan for nearby opponents and drive towards them.
-
-For this code to work, jumpers on the front sensor array
-must be installed in order to connect pin 4 to RGT and connect
-pin 20 to LFT.
-
-This code was tested on a Zumo 32U4 with 75:1 HP micro metal
-gearmotors. */
+/**
+ * Hackathon Zumo Robot code.
+ * Strategy 1
+ * 
+ * yoven ayassamy
+ * kavi ramsamy
+ * yogesh sharma
+ * hemanta devi huril
+ */
 
 #include <Wire.h>
 #include <Zumo32U4.h>
 
+/**********************************************************************
+ *                        Zumo library objects                              
+ **********************************************************************/
 Zumo32U4LCD lcd;
 Zumo32U4ButtonA buttonA;
 Zumo32U4Buzzer buzzer;
@@ -23,23 +21,41 @@ Zumo32U4Motors motors;
 Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
 
+/**********************************************************************
+ *                         Line Sensor Variables                              
+ **********************************************************************/
+
+// values read by line sensor are stored in this array
 unsigned int lineSensorValues[3];
 
-// When the reading on a line sensor goes below this value, we
-// consider that line sensor to have detected the white border at
-// the edge of the ring.  This value might need to be tuned for
-// different lighting conditions, surfaces, etc.
+// Threshold difference between the value that the line sensor
+// returns for white and black surfaces
+// *** To be checked because of different lighting conditions ***
 const uint16_t lineSensorThreshold = 1000;
 
-// The speed that the robot uses when backing up.
+/**********************************************************************
+ *                       Proximity Sensor Variables                              
+ **********************************************************************/
+
+// The minimum amount of time to spend scanning for nearby opponents, in milliseconds.
+const uint16_t scanTimeMin = 200;
+
+// The maximum amount of time to spend scanning for nearby opponents, in milliseconds.
+const uint16_t scanTimeMax = 2100;
+
+
+/**********************************************************************
+ *                     Motors Sensor Variables                              
+ **********************************************************************/
+
+// Speed that the robot uses when backing up.
 const uint16_t reverseSpeed = 200;
 
-// The speed that the robot uses when turning.
+// Speed that the robot uses when turning.
 const uint16_t turnSpeed = 200;
 
-// The speed that the robot usually uses when moving forward.
-// You don't want this to be too fast because then the robot
-// might fail to stop when it detects the white border.
+// Speed the robot uses to move forward at a low speed
+// to look for opponents.
 const uint16_t forwardSpeed = 200;
 
 // These two variables specify the speeds to apply to the motors
@@ -49,23 +65,19 @@ const uint16_t forwardSpeed = 200;
 const uint16_t veerSpeedLow = 0;
 const uint16_t veerSpeedHigh = 250;
 
-// The speed that the robot drives when it detects an opponent in
-// front of it, either with the proximity sensors or by noticing
-// that it is caught in a stalemate (driving forward for several
-// seconds without reaching a border).  400 is full speed.
+// Speed the robot uses to push opponent out of the ring.
 const uint16_t rammingSpeed = 400;
 
-// The amount of time to spend backing up after detecting a
-// border, in milliseconds.
+// The amount of time to spend backing up after detecting a border, in milliseconds.
 const uint16_t reverseTime = 200;
 
-// The minimum amount of time to spend scanning for nearby
-// opponents, in milliseconds.
-const uint16_t scanTimeMin = 200;
+// Initial Scanning speed
+// This is the speed of the motors when in the StateInitial.
+const uint16_t initialScanSpeed = 200;
 
-// The maximum amount of time to spend scanning for nearby
-// opponents, in milliseconds.
-const uint16_t scanTimeMax = 2100;
+/**********************************************************************
+ *                      Other Variables                              
+ **********************************************************************/
 
 // The amount of time to wait between detecting a button press
 // and actually starting to move, in milliseconds.  Typical robot
@@ -78,23 +90,31 @@ const uint16_t waitTime = 5000;
 // stalemate, so it increases its motor speed.
 const uint16_t stalemateTime = 4000;
 
-bool firstPressed = false;
-bool scanRight = true;
-int previous = 0;
+// This variable is used together with millis()
+// to make the robot oscillate to scan for opponents.
+int scanningPrevTime = 0;
 
-// This enum lists the top-level states that the robot can be in.
+// This variable is used to store the direction
+// at which the robot should turn when oscillating
+// in the InitialState to look for opponent.
+bool toTurnRight = true;
+
+// This variable determines if the robot has just been switched on.
+bool justStarted = true;
+
+// Enum to describe the different state that the robot can be in.
 enum State
 {
-  StatePausing,
-  StateWaiting,
-  StateInitialScanning,
   StateScanning,
   StateDriving,
   StateBacking,
+  StateInitial
 };
 
-State state = StatePausing;
+// Set the intial state to StateInitial when the robot is just started.
+State state = StateInitial;
 
+// Enum to describe the direction that the robot can go.
 enum Direction
 {
   DirectionLeft,
@@ -116,177 +136,115 @@ uint16_t displayTime;
 // perform actions just once at the beginning of the state.
 bool justChangedState;
 
-// This gets set whenever we clear the display.
-bool displayCleared;
-
+/**********************************************************************
+ *                              Set Up                             
+ **********************************************************************/
 void setup()
 {
-  // Uncomment if necessary to correct motor directions:
-  //motors.flipLeftMotor(true);
-  //motors.flipRightMotor(true);
+  // Stop the motors
+  motors.setSpeeds(0, 0);
 
+  // Activate the 3 line sensors.
   lineSensors.initThreeSensors();
+
+  // Activate the 3 proximity sensors.
   proxSensors.initThreeSensors();
 
-  changeState(StatePausing);
+  // Ask user to press button A to start the robot,
+  // then clear the display after 5 seconds,
+  // indicating that the robot has started running.
+  lcd.clear();
+  lcd.gotoXY(0, 0);
+  lcd.print("Press A");
+  buttonA.waitForPress();
+  delay(5000);
+  lcd.clear();
+  scanningPrevTime = millis();
 }
 
+/**********************************************************************
+ *                              Loop                                 
+ **********************************************************************/
 void loop()
 {
-  bool buttonPress = buttonA.getSingleDebouncedPress();
+  if (state == StateInitial) {  // In this state, the robot oscillates in place to look for opponents.
 
-  if(state == StateInitialScanning){
-    if(scanRight){
-      motors.setSpeeds(200,-200);
-    }else{
-      motors.setSpeeds(-200,200);
-    }
-
-    if(firstPressed){
-      if(millis() - previous > 350){
-        scanRight = !scanRight;
-        previous = millis();
-        firstPressed = false;
+      if (toTurnRight) {
+          motors.setSpeeds(initialScanSpeed, -initialScanSpeed);
+      } else {
+          motors.setSpeeds(-initialScanSpeed, initialScanSpeed);
       }
-    }else{
-      if(millis() - previous > 700){
-        scanRight = !scanRight;
-        previous = millis();
-      }
-    }
 
-     proxSensors.read();
-      if (proxSensors.countsFrontWithLeftLeds() >= 1 || proxSensors.countsFrontWithRightLeds() >= 1) {
+      if (justStarted) {
+
+          if (millis() - scanningPrevTime > 350) {
+              scanningPrevTime = millis();
+              justChangedState = false;
+              toTurnRight = !toTurnRight;
+          }
+      } else {
+          if (millis() - scanningPrevTime > 700) {
+              scanningPrevTime = millis();
+              toTurnRight = !toTurnRight;
+          }
+      }
+
+      // Read the proximity sensors and if anything is detected
+      // by the front proximity receiver, move forward.
+      proxSensors.read();
+      if (proxSensors.countsFrontWithLeftLeds() > 0 || proxSensors.countsFrontWithRightLeds() > 0) {
         changeState(StateDriving);
       }
 
-  }
-  else if (state == StatePausing)
-  {
-    // In this state, we just wait for the user to press button
-    // A, while displaying the battery voltage every 100 ms.
-
-    motors.setSpeeds(0, 0);
-
-    if (justChangedState)
-    {
+  } else if (state == StateBacking) { // In this state, the robot drives in reverse.
+    
+    if (justChangedState) {
       justChangedState = false;
-      lcd.print(F("Press A"));
-    }
-
-    if (displayIsStale(100))
-    {
-      displayUpdated();
-      lcd.gotoXY(0, 1);
-      lcd.print(readBatteryMillivolts());
-    }
-
-    if (buttonPress)
-    {
-      delay(5000);
-      firstPressed = true;
-      previous = millis();
-      // The user pressed button A, so go to the waiting state.
-      changeState(StateInitialScanning);
-    }
-  }
-  else if (buttonPress)
-  {
-    // The user pressed button A while the robot was running, so pause.
-    changeState(StatePausing);
-  }
-  else if (state == StateWaiting)
-  {
-    // In this state, we wait for a while and then move on to the
-    // scanning state.
-
-    motors.setSpeeds(0, 0);
-
-    uint16_t time = timeInThisState();
-
-    if (time < waitTime)
-    {
-      // Display the remaining time we have to wait.
-      uint16_t timeLeft = waitTime - time;
-      lcd.gotoXY(0, 0);
-      lcd.print(timeLeft / 1000 % 10);
-      lcd.print('.');
-      lcd.print(timeLeft / 100 % 10);
-    }
-    else
-    {
-      // We have waited long enough.  Start moving.
-      changeState(StateScanning);
-    }
-  }
-  else if (state == StateBacking)
-  {
-    // In this state, the robot drives in reverse.
-
-    if (justChangedState)
-    {
-      justChangedState = false;
-      lcd.print(F("back"));
     }
 
     motors.setSpeeds(-reverseSpeed, -reverseSpeed);
 
-    // After backing up for a specific amount of time, start
-    // scanning.
-    if (timeInThisState() >= reverseTime)
-    {
+    // After backing up for a specific amount of time, start scanning.
+    if (timeInThisState() >= reverseTime) {
       changeState(StateScanning);
     }
-  }
-  else if (state == StateScanning)
-  {
-    // In this state the robot rotates in place and tries to find
-    // its opponent.
 
-    if (justChangedState)
-    {
+  } else if (state == StateScanning) { // In this state, the robot rotates in place to look for opponents.
+
+    if (justChangedState) {
       justChangedState = false;
-      lcd.print(F("scan"));
     }
 
-    if (scanDir == DirectionRight)
-    {
+    if (scanDir == DirectionRight) {
       motors.setSpeeds(turnSpeed, -turnSpeed);
-    }
-    else
-    {
+    } else {
       motors.setSpeeds(-turnSpeed, turnSpeed);
     }
 
     uint16_t time = timeInThisState();
 
-    if (time > scanTimeMax)
-    {
+    if (time > scanTimeMax) {
       // We have not seen anything for a while, so start driving.
       changeState(StateDriving);
-    }
-    else if (time > scanTimeMin)
-    {
+    } else if (time > scanTimeMin) {
+
       // Read the proximity sensors.  If we detect anything with
       // the front sensor, then start driving forwards.
       proxSensors.read();
-      if (proxSensors.countsFrontWithLeftLeds() >= 2
-        || proxSensors.countsFrontWithRightLeds() >= 2)
-      {
+      if (proxSensors.countsFrontWithLeftLeds() > 0 || proxSensors.countsFrontWithRightLeds() > 0) {
         changeState(StateDriving);
       }
     }
-  }
-  else if (state == StateDriving)
-  {
-    // In this state we drive forward while also looking for the
-    // opponent using the proximity sensors and checking for the
-    // white border.
+  } else if (state == StateDriving) {
+    /*
+     * In this state we drive forward while also looking for the
+     * opponent using the proximity sensors and checking for the
+     * white border.
+     */
 
     if (justChangedState)
     {
       justChangedState = false;
-      lcd.print(F("drive"));
     }
 
     // Check for borders.
@@ -342,8 +300,6 @@ void loop()
         scanDir = DirectionRight;
         changeState(StateScanning);
       }
-
-      ledRed(0);
     }
     else
     {
@@ -365,7 +321,7 @@ void loop()
         // Both readings are equal, so just drive forward.
         motors.setSpeeds(forwardSpeed, forwardSpeed);
       }
-      ledRed(0);
+
     }
   }
 }
@@ -386,27 +342,4 @@ void changeState(uint8_t newState)
   state = (State)newState;
   justChangedState = true;
   stateStartTime = millis();
-  ledRed(0);
-  ledYellow(0);
-  ledGreen(0);
-  lcd.clear();
-  displayCleared = true;
-}
-
-// Returns true if the display has been cleared or the contents
-// on it have not been updated in a while.  The time limit used
-// to decide if the contents are staled is specified in
-// milliseconds by the staleTime parameter.
-bool displayIsStale(uint16_t staleTime)
-{
-  return displayCleared || (millis() - displayTime) > staleTime;
-}
-
-// Any part of the code that uses displayIsStale to decide when
-// to update the LCD should call this function when it updates the
-// LCD.
-void displayUpdated()
-{
-  displayTime = millis();
-  displayCleared = false;
 }
