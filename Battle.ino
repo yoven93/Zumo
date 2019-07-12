@@ -54,7 +54,7 @@ const uint16_t reverseSpeed = 200;
 const uint16_t reverseTime = 200;
 
 // Speed that the robot uses when turning.
-const uint16_t turnSpeed = 200;
+const uint16_t turnSpeed = 250;
 
 // Speed the robot uses to move forward at a low speed
 // to look for opponents.
@@ -68,7 +68,8 @@ enum State
 {
   StateScanning,
   StateDriving,
-  StateBacking
+  StateBacking,
+  StateHardTurn
 };
 
 // Set the intial state to StateInitial when the robot is just started.
@@ -84,6 +85,8 @@ enum Direction
 // scanDir is the direction the robot should turn the next time
 // it scans for an opponent.
 Direction scanDir = DirectionLeft;
+
+Direction hardTurn;
 
 // The time, in milliseconds, that we entered the current top-level state.
 uint16_t stateStartTime;
@@ -143,8 +146,18 @@ void loop()
 
     proxSensors.read();
     
-    if (proxSensors.countsFrontWithLeftLeds() >= 4 && proxSensors.countsFrontWithRightLeds() >= 4) {
+    if (proxSensors.countsFrontWithLeftLeds() >= 3 || proxSensors.countsFrontWithRightLeds() >= 3) {
       opponentFound = true;
+    }
+
+    if (proxSensors.countsRightWithRightLeds() >= 5) {
+      hardTurn = DirectionRight;
+      changeState(StateHardTurn);
+    }
+
+    if (proxSensors.countsLeftWithLeftLeds() >= 5) {
+      hardTurn = DirectionLeft;
+      changeState(StateHardTurn);
     }
 
     if (opponentFound) {
@@ -152,10 +165,13 @@ void loop()
       ledRed(1);
 
       if (proxSensors.countsFrontWithLeftLeds() > proxSensors.countsFrontWithRightLeds()) {
-        motors.setSpeeds(380, 400);
+        ledYellow(0);
+        motors.setSpeeds(350, rammingSpeed);
       } else if (proxSensors.countsFrontWithLeftLeds() < proxSensors.countsFrontWithRightLeds()) {
-        motors.setSpeeds(400, 380);
+        ledYellow(0);
+        motors.setSpeeds(rammingSpeed, 350);
       } else {
+        ledYellow(1);
         motors.setSpeeds(rammingSpeed, rammingSpeed);
       }
 
@@ -164,11 +180,14 @@ void loop()
       ledRed(0);
 
       if (proxSensors.countsFrontWithLeftLeds() > proxSensors.countsFrontWithRightLeds()) {
-        motors.setSpeeds(250, 300);
+        ledYellow(0);
+        motors.setSpeeds(180, forwardSpeed);
       } else if (proxSensors.countsFrontWithLeftLeds() < proxSensors.countsFrontWithRightLeds()) {
-        motors.setSpeeds(300, 250);
+        ledYellow(0);
+        motors.setSpeeds(forwardSpeed, 180);
       } else {
-        motors.setSpeeds(300, 300);
+        ledYellow(0);
+        motors.setSpeeds(forwardSpeed, forwardSpeed);
       }
     }
   }
@@ -208,6 +227,20 @@ void loop()
       {
         changeState(StateDriving);
       }
+    }
+  }
+  else if (state == StateHardTurn) {
+
+    if (hardTurn == DirectionLeft) {
+      motors.setSpeeds(-300, 300);
+    }
+    else {
+      motors.setSpeeds(300, -300);
+    }
+
+    if (millis() - stateStartTime > 150) {
+      opponentFound = true;
+      changeState(StateDriving);
     }
   }
 }
