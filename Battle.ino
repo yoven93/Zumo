@@ -54,7 +54,7 @@ const uint16_t reverseSpeed = 200;
 const uint16_t reverseTime = 200;
 
 // Speed that the robot uses when turning.
-const uint16_t turnSpeed = 250;
+const uint16_t turnSpeed = 200;
 
 // Speed the robot uses to move forward at a low speed
 // to look for opponents.
@@ -135,7 +135,7 @@ void loop()
     if (justStarted)
     {
       motors.setSpeeds(200, -200);
-      if (millis() - previous > 100)
+      if (millis() - previous > 150)
       {
         justStarted = false;
         motors.setSpeeds(forwardSpeed, forwardSpeed);
@@ -261,7 +261,6 @@ void changeState(uint8_t newState)
   state = (State)newState;
   stateStartTime = millis();
 }
-
 
 void checkBorder() {
    // Check for borders with the line sensors.
